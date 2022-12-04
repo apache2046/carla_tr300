@@ -308,7 +308,14 @@ class World(object):
             spawn_points = self.map.get_spawn_points()
             # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
             spawn_point = spawn_points[self._args.num_selected_spawn_point]
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            # self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+            spawn_point_transform = carla.Transform()
+            spawn_point_transform.location.x = -3 #-198.5 #-176
+            spawn_point_transform.location.y = -87 #-145 #111
+            spawn_point_transform.location.z = 3
+            spawn_point_transform.rotation.yaw = 90
+
+            self.player = self.world.spawn_actor(blueprint, spawn_point_transform)
             self.show_vehicle_telemetry = False
             self.modify_vehicle_physics(self.player)
         # Set up the sensors.
@@ -746,7 +753,7 @@ class HUD(object):
             'Height:  % 18.0f m' % t.location.z,
             '']
         self.way_point_clk += 1
-        if self.way_point_clk % 2 == 0:
+        if self.way_point_clk % 1 == 0:
             self.way_point_file.write(f'{t.location.x},{t.location.y},{math.sqrt(v.x**2 + v.y**2 + v.z**2)}\n')
             self.way_point_file.flush()
         
