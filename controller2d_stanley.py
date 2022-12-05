@@ -28,7 +28,7 @@ class Controller2D(object):
         self._set_brake          = 0
         self._set_steer          = 0
         self._waypoints          = waypoints
-        self._conv_rad_to_steer  = 180.0 / 70.0 / np.pi
+        self._conv_rad_to_steer  = 180.0 / 35.0 / np.pi
         self._pi                 = np.pi
         self._2pi                = 2.0 * np.pi
         self.v_err_previous          = 0
@@ -49,6 +49,8 @@ class Controller2D(object):
         min_idx = dist.argmin()
         self._desired_speed = self._waypoints[min_idx][2]
         self._ahead_waypoints = self._waypoints[min_idx:]
+        if min_idx > len(self._waypoints) - 4:
+            self._desired_speed = 0
 
 
     def update_waypoints(self, new_waypoints):
@@ -96,11 +98,7 @@ class Controller2D(object):
         # MODULE 7: IMPLEMENTATION OF LONGITUDINAL CONTROLLER HERE
         ######################################################
         ######################################################
-        """
-            Implement a longitudinal controller here. Remember that you can
-            access the persistent variables declared above here. For
-            example, can treat self.vars.v_previous like a "global variable".
-        """
+
         v_err = v_desired - v
         v_err_d = v_err - self.v_err_previous
 
@@ -168,32 +166,11 @@ class Controller2D(object):
         Ke = 0.5
         steer_output = 0.5 * psai + np.arctan2(Ke * cross_track_error, Ks + v)
 
-        """
-            Implement a lateral controller here. Remember that you can
-            access the persistent variables declared above here. For
-            example, can treat self.vars.v_previous like a "global variable".
-        """
-        # Change the steer output with the lateral controller. 
-        # steer_output = steer_delta
-        # print(f"steer:, {steer_delta:.05f}, {psai:.05f}, {e:.05f} {reference_line_yaw:.05f}, {Ke * e:.4f}, {Ks + v:.4f}")
-        # e = np.clip(e, -0.4, 0.4)
-        
-        # throttle_output = 0.5
         ######################################################
         # SET CONTROLS OUTPUT
         ######################################################
         self.set_throttle(throttle_output)  # in percent (0 to 1)
         self.set_steer(steer_output)        # in rad (-1.22 to 1.22)
         self.set_brake(brake_output)        # in percent (0 to 1)
-        print(throttle_output, steer_output, brake_output)
-        ######################################################
-        ######################################################
-        # MODULE 7: STORE OLD VALUES HERE (ADD MORE IF NECESSARY)
-        ######################################################
-        ######################################################
-        """
-            Use this block to store old values (for example, we can store the
-            current x, y, and yaw values here using persistent variables for use
-            in the next iteration)
-        """
+
         self.v_previous = v  # Store forward speed to be used in next step

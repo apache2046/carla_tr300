@@ -14,9 +14,10 @@ from carla import ColorConverter as cc
 import time
 import numpy as np
 import controller2d_stanley
+import scipy
 
 INTERP_LOOKAHEAD_DISTANCE = 20   # lookahead in meters
-INTERP_DISTANCE_RES       = 0.01 # distance between interpolated points
+INTERP_DISTANCE_RES       = 0.1 # distance between interpolated points
 
 
 client = carla.Client('127.0.0.1', 2000)
@@ -84,13 +85,28 @@ camera_sensor.listen(lambda image: parse_img(image))
 world_tick = 0
 world.tick()
 
-with open("waypoint3.txt") as waypoints_file_handle:
-    waypoints = list(csv.reader(waypoints_file_handle, 
-                                delimiter=',',
-                                quoting=csv.QUOTE_NONNUMERIC))
-    waypoints_np = np.array(waypoints)[70:3260]
-print(waypoints_np[:3])
-controller = controller2d_stanley.Controller2D(waypoints_np)
+def load_waypoints(waypoints_file):
+    with open(waypoints_file) as waypoints_file_handle:
+        waypoints = list(csv.reader(waypoints_file_handle, 
+                                    delimiter=',',
+                                    quoting=csv.QUOTE_NONNUMERIC))
+        waypoints_np = np.array(waypoints)[70:3260]
+        print(waypoints_np[:3])
+        pre_p = waypoints_np[0]
+        cumulate_distance = np.zeros(waypoints_np.shape[0])
+        for idx, p in enumerate(waypoints_np[1:]):
+            ajacent_distance = np.linalg.norm(p[:2] - pre_p[:2])
+            cumulate_distance[idx+1] = cumulate_distance[idx] + ajacent_distance
+            pre_p = p
+
+        s_arr = np.linspace(0, cumulate_distance[-1], cumulate_distance[-1]/INTERP_LOOKAHEAD_DISTANCE)
+        new_wp = scipy.interpolate.griddata(cumulate_distance, waypoints_np, s_arr)
+        print("new_wp:", len(new_wp), new_wp[:10])
+        return new_wp
+
+way_points = load_waypoints("waypoint3.txt")
+controller = controller2d_stanley.Controller2D(way_points)
+
 throttle, steer, brake = 0, 0, 0
 while True:
     if world_tick == img_idx:
