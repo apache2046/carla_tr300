@@ -5,8 +5,8 @@ import numpy as np
 def get_distance_from_point_to_line(point, line_point1, line_point2):
     #对于两点坐标为同一点时,返回点与点的距离
     if np.linalg.norm(np.array([line_point1[0]-line_point2[0], line_point1[1]-line_point2[1]])) < 0.01:
-        point_array = np.array(point )
-        point1_array = np.array(line_point1)
+        point_array = np.array(point[:2])
+        point1_array = np.array(line_point1[:2])
         return np.linalg.norm(point_array -point1_array )
     #计算直线的三个参数
     A = line_point2[1] - line_point1[1]
@@ -28,7 +28,7 @@ class Controller2D(object):
         self._set_brake          = 0
         self._set_steer          = 0
         self._waypoints          = waypoints
-        self._conv_rad_to_steer  = 180.0 / 35.0 / np.pi
+        self._conv_rad_to_steer  = 180.0 / 70 / np.pi
         self._pi                 = np.pi
         self._2pi                = 2.0 * np.pi
         self.v_err_previous          = 0
@@ -49,8 +49,8 @@ class Controller2D(object):
         min_idx = dist.argmin()
         self._desired_speed = self._waypoints[min_idx][2]
         self._ahead_waypoints = self._waypoints[min_idx:]
-        if min_idx > len(self._waypoints) - 4:
-            self._desired_speed = 0
+       # if min_idx > len(self._waypoints) - 4:
+       #     self._desired_speed = 0
 
 
     def update_waypoints(self, new_waypoints):
@@ -144,7 +144,7 @@ class Controller2D(object):
         if nearest_idx == len(waypoints) -1:
             nearest_idx -= 1
 
-        nearest_next_idx = (nearest_idx + 5) % (len(waypoints))
+        nearest_next_idx = (nearest_idx + 1) % (len(waypoints))
 
         ref_point_x, ref_point_y, _ = waypoints[nearest_idx]
         ref_next_point_x, ref_next_point_y, _ = waypoints[nearest_next_idx]

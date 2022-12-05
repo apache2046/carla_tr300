@@ -14,7 +14,7 @@ from carla import ColorConverter as cc
 import time
 import numpy as np
 import controller2d_stanley
-import scipy
+import scipy.interpolate
 
 INTERP_LOOKAHEAD_DISTANCE = 20   # lookahead in meters
 INTERP_DISTANCE_RES       = 0.1 # distance between interpolated points
@@ -59,7 +59,7 @@ img_idx = 0
 display_speed = 0
 def parse_img(image):
     global camera_surface
-    print('parse_img', camera_surface, image.height, image.width)
+    #print('parse_img', camera_surface, image.height, image.width)
     image.convert(cc.Raw)
     array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
     array = np.reshape(array, (image.height, image.width, 4))
@@ -76,7 +76,7 @@ def parse_img(image):
     cvimg = cv2.putText(cvimg, f'{int(display_speed * 3.6)}km/h', org, font, 
                     fontScale, color, thickness, cv2.LINE_AA)
     cv2.imwrite(f'/tmp/imgs/{img_idx:04}.png', cvimg)
-    print(img_idx)
+    #print(img_idx)
     img_idx += 1
     
 
@@ -90,7 +90,8 @@ def load_waypoints(waypoints_file):
         waypoints = list(csv.reader(waypoints_file_handle, 
                                     delimiter=',',
                                     quoting=csv.QUOTE_NONNUMERIC))
-        waypoints_np = np.array(waypoints)[70:3260]
+        #waypoints_np = np.array(waypoints)[:3260]
+        waypoints_np = np.array(waypoints)[:3330]
         print(waypoints_np[:3])
         pre_p = waypoints_np[0]
         cumulate_distance = np.zeros(waypoints_np.shape[0])
@@ -99,10 +100,10 @@ def load_waypoints(waypoints_file):
             cumulate_distance[idx+1] = cumulate_distance[idx] + ajacent_distance
             pre_p = p
 
-        s_arr = np.linspace(0, cumulate_distance[-1], cumulate_distance[-1]/INTERP_LOOKAHEAD_DISTANCE)
+        s_arr = np.linspace(0, cumulate_distance[-1], int(cumulate_distance[-1]//INTERP_DISTANCE_RES))
         new_wp = scipy.interpolate.griddata(cumulate_distance, waypoints_np, s_arr)
-        print("new_wp:", len(new_wp), new_wp[:10])
-        return new_wp
+        print("new_wp:", len(new_wp), new_wp)
+        return new_wp[5:]
 
 way_points = load_waypoints("waypoint3.txt")
 controller = controller2d_stanley.Controller2D(way_points)
@@ -122,7 +123,7 @@ while True:
     y = t.location.y
     yaw = t.rotation.yaw
 
-    if world_tick % 30 == 0:
+    if world_tick % 10 == 0:
         display_speed = speed
     if world_tick > 60:
         controller.update_values(x, y, math.radians(yaw), speed)
