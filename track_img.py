@@ -19,9 +19,9 @@ INTERP_LOOKAHEAD_DISTANCE = 20   # lookahead in meters
 INTERP_DISTANCE_RES       = 0.01 # distance between interpolated points
 
 
-client = carla.Client('192.168.31.6', 2000)
+client = carla.Client('127.0.0.1', 2000)
 client.set_timeout(20.0)
-# client.load_world('Town07')
+client.load_world('Town07')
 world = client.get_world()
 
 original_settings = world.get_settings()
@@ -55,21 +55,22 @@ camera_sensor = world.spawn_actor(camera_bp,
                 attachment_type= carla.AttachmentType.SpringArm)
 camera_surface = None
 img_idx = 0
+display_speed = 0
 def parse_img(image):
     global camera_surface
     print('parse_img', camera_surface, image.height, image.width)
     image.convert(cc.Raw)
     array = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
     array = np.reshape(array, (image.height, image.width, 4))
-    cvimg = array[:, :, :3]
+    cvimg = array[:, :, :3].copy()
     #array = array[:, :, ::-1]
     global img_idx
     # font
     font = cv2.FONT_HERSHEY_SIMPLEX
-    org = (50, 50)
-    fontScale = 1
+    org = (100, 100)
+    fontScale = 2
     color = (255, 255, 255)
-    thickness = 2
+    thickness = 4
     global display_speed
     cvimg = cv2.putText(cvimg, f'{int(display_speed * 3.6)}km/h', org, font, 
                     fontScale, color, thickness, cv2.LINE_AA)
@@ -105,6 +106,8 @@ while True:
     y = t.location.y
     yaw = t.rotation.yaw
 
+    if world_tick % 30 == 0:
+        display_speed = speed
     if world_tick > 60:
         controller.update_values(x, y, math.radians(yaw), speed)
         controller.update_controls()

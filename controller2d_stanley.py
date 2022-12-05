@@ -149,7 +149,7 @@ class Controller2D(object):
         nearest_next_idx = (nearest_idx + 5) % (len(waypoints))
 
         ref_point_x, ref_point_y, _ = waypoints[nearest_idx]
-        ref_next_point_x, ref_next_point_y, _ = waypoints[nearest_idx]
+        ref_next_point_x, ref_next_point_y, _ = waypoints[nearest_next_idx]
 
         reference_line_yaw = np.arctan2(ref_next_point_y - ref_point_y, ref_next_point_x - ref_point_x)
 
