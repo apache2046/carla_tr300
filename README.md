@@ -1,3 +1,5 @@
+
+
 # carla_t300rs
 use thrustmaster t300rs to control vehicles in carla simulator
 
@@ -14,7 +16,7 @@ use thrustmaster t300rs to control vehicles in carla simulator
 
 ## draw overlapped trace
 1. save a log, modifiy it, then
-2. ``` python draw_track.py ```
+2. ``` python draw_trace.py ```
 
 https://user-images.githubusercontent.com/1034542/205655694-168f8995-d245-402d-8d12-c2ccbe8c9787.webm
 
